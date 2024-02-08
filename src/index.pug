@@ -1,0 +1,20 @@
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport" content="width=device-width, initial-scale=1.0")
+        title Tic tac toe
+        link(rel="stylesheet" href="styles.css")
+    body
+        form.tic-tac-toe
+            .end-screen
+                span.end-text
+                span.restart-text Click to restart
+                button.restart-button(type="reset")
+            each figure in ['circle', 'cross']
+                div(class=figure + "-board")
+                    each row in ['top', 'middle', 'bottom']
+                        each column in ['left', 'center', 'right']
+                            - cell = figure + '-' + row + '-' + column
+                            input(type="radio", name=cell, id=cell)
+                            label(for=cell)

@@ -1,0 +1,297 @@
+@property --background-angle {
+    syntax: "<angle>";
+    inherits: true;
+    initial-value: 0deg;
+}
+
+@property --background-color-primary {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: black;
+}
+
+@property --background-color-secondary {
+    syntax: "<color>";
+    inherits: true;
+    initial-value: white;
+}
+
+:root {
+    --white: rgb(245, 245, 245);
+    --white-transparent-1: rgba(255, 255, 255, .8);
+    --white-transparent-2: rgba(255, 255, 255, .5);
+    --white-transparent-3: rgba(255, 255, 255, .1);
+    --black-transparent-1: rgba(0, 0, 0, .2);
+    --black-transparent-2: rgba(0, 0, 0, .1);
+}
+
+@keyframes animated-background {
+
+    0% {
+        --background-angle: 45deg;
+    }
+
+    100% {
+        --background-angle: 765deg;
+    }
+
+    0%,
+    100% {
+        --background-color-primary: #22c1c3;
+        --background-color-secondary: #fdbb2d;
+    }
+
+    25% {
+        --background-color-primary: #36d1dc;
+        --background-color-secondary: #5b86e5;
+    }
+
+    50% {
+        --background-color-primary: #ff9966;
+        --background-color-secondary: #ff5e62;
+    }
+
+    75% {
+        --background-color-primary: #06beb6;
+        --background-color-secondary: #48b1bf;
+    }
+}
+
+@keyframes restart-text {
+
+    0%,
+    100% {
+        opacity: 0;
+    }
+
+    20%,
+    80% {
+        opacity: 1;
+    }
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    color: var(--white);
+    background: linear-gradient(var(--background-angle), var(--background-color-primary), var(--background-color-secondary));
+    display: grid;
+    place-items: center;
+    animation: animated-background 120s infinite linear;
+}
+
+.tic-tac-toe {
+    width: 300px;
+    height: 300px;
+    position: relative;
+}
+
+.circle-board,
+.cross-board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+    position: absolute;
+    inset: 0;
+    padding: 10px;
+}
+
+// Visible board 
+.circle-board {
+    border-radius: 30px;
+    background: var(--white-transparent-3);
+    box-shadow:
+        0 4px 30px var(--black-transparent-1),
+        inset 1px 1px 0 var(--white-transparent-2),
+        inset -1px -1px 0 var(--black-transparent-2);
+
+    label {
+        &:not(:nth-of-type(n + 7)) {
+            border-bottom: 1px solid var(--white-transparent-1);
+        }
+
+        &:nth-of-type(3n + 2),
+        &:nth-of-type(3n + 3) {
+            border-left: 1px solid var(--white-transparent-1);
+        }
+    }
+}
+
+label {
+    position: relative;
+    cursor: pointer;
+}
+
+input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.circle-board, .cross-board {
+    input:checked + label {
+        pointer-events: none;
+    }
+}
+
+.circle-board input + label:hover::before,
+.cross-board input + label:hover::before,
+.cross-board input + label:hover::after {
+    content: '';
+    position: absolute;
+    border-width: 1px;
+}
+
+.circle-board input:checked + label::before,
+.cross-board input:checked + label::before,
+.cross-board input:checked + label::after {
+    content: '';
+    position: absolute;
+    border-width: 10px;
+    transition: 250ms border cubic-bezier(.38,1.68,.55,1.06);
+}
+
+.circle-board label::before {
+    top: 10px;
+    left: 10px;
+    height: calc(100% - 20px);
+    width: calc(100% - 20px);
+    border: solid currentColor;
+    border-radius: 50%;
+    box-sizing: border-box;
+}
+
+.cross-board label {
+    &::before,
+    &::after {
+        border-top: 10px solid currentColor;
+        border-radius: 5px;
+        top: 50%;
+        left: 0;
+        width: 100%;
+    }
+
+    &::before {
+        transform: translateY(-50%) rotate(45deg);
+    }
+    
+    &::after {
+        transform: translateY(-50%) rotate(-45deg);
+    }
+}
+
+.end-screen {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 30px);
+    left: 0;
+    width: 100%;
+    text-align: center;
+
+    .end-text {
+        display: block;
+        font-size: 42px;
+        margin-bottom: 20px;
+
+        &::first-letter {
+            text-transform: uppercase;
+        }
+    }
+
+    .restart-text {
+        font-size: 18px;
+        cursor: pointer;
+        animation: restart-text 3s linear infinite;
+    }
+
+    .restart-button {
+        position: absolute;
+        inset: 0;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 1;
+    }
+}
+
+$rows: 'top', 'middle', 'bottom';
+$columns: 'left', 'center', 'right';
+
+// Disable same position of figures when the opponent position is checked
+@each $row in $rows {
+    @each $column in $columns {
+        .circle-board:has(#circle-#{$row}-#{$column}:checked) + .cross-board #cross-#{$row}-#{$column},
+        .tic-tac-toe:has(#cross-#{$row}-#{$column}:checked) #circle-#{$row}-#{$column} {
+            + label {
+                pointer-events: none;
+            }
+        }
+    }
+}
+
+@function siblings-checked-inputs($amount) {
+    $inputs: 'input:checked';
+
+    @if ($amount > 1) {
+        @for $i from 2 through $amount {
+            $inputs: '#{$inputs} ~ input:checked'
+        }
+    }
+
+    @return $inputs;
+}
+
+@mixin show-end-screen($text) {
+    .end-screen {
+        display: block;
+
+        .end-text::before {
+            content: $text;
+        }
+
+        // Enable restart button
+        .restart-button {
+            pointer-events: all;
+        }
+    }
+}
+
+
+// Disable cross board on circle turn
+@for $i from 1 through 4 {
+    .circle-board:not(:has(#{siblings-checked-inputs($i)})) + .cross-board:has(#{siblings-checked-inputs($i)}) {
+        pointer-events: none;
+    }
+}
+
+.tic-tac-toe {
+    // Tie conditions (4 circle checked and 5 crosses checked)
+    &:has(.circle-board #{siblings-checked-inputs(4)}):has(.cross-board #{siblings-checked-inputs(5)}) {
+        @include show-end-screen('It\'s a tie!');
+    }
+
+
+    // Win conditions
+    @each $figure in ('circle', 'cross') {
+        &:has(##{$figure}-top-left:checked ~ ##{$figure}-top-center:checked ~ ##{$figure}-top-right:checked),
+        &:has(##{$figure}-top-left:checked ~ ##{$figure}-middle-left:checked ~ ##{$figure}-bottom-left:checked),
+        &:has(##{$figure}-top-left:checked ~ ##{$figure}-middle-center:checked ~ ##{$figure}-bottom-right:checked),
+        &:has(##{$figure}-top-center:checked ~ ##{$figure}-middle-center:checked ~ ##{$figure}-bottom-center:checked),
+        &:has(##{$figure}-top-right:checked ~ ##{$figure}-middle-right:checked ~ ##{$figure}-bottom-right:checked),
+        &:has(##{$figure}-middle-left:checked ~ ##{$figure}-middle-center:checked ~ ##{$figure}-middle-right:checked),
+        &:has(##{$figure}-bottom-left:checked ~ ##{$figure}-bottom-center:checked ~ ##{$figure}-bottom-right:checked),
+        &:has(##{$figure}-top-right:checked ~ ##{$figure}-middle-center:checked ~ ##{$figure}-bottom-left:checked) {
+            // Disable both boards
+            .circle-board, .cross-board {
+                pointer-events: none;
+            }
+
+            @include show-end-screen('#{$figure} won!');
+        }
+    }
+}
+
